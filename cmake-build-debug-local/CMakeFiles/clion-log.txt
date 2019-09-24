@@ -1,4 +1,0 @@
-/home/eugene/Intellij/CLion-2018.2/clion-2018.2/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/eugene/CLionProjects/RHIC/flow_processing
--- Configuring done
--- Generating done
--- Build files have been written to: /home/eugene/CLionProjects/RHIC/flow_processing/cmake-build-debug-local
