@@ -40,6 +40,10 @@ struct ResolutionTrack {
   float yMin{0.4};
   float yMax{1.2};
 
+  ResolutionTrack () = default;
+  ResolutionTrack (float _yMin, float _yMax) :
+	  yMin(_yMin), yMax(_yMax) {};
+
   Result operator()(std::vector<Result> args, const vector<string> &argNames) const {
     assert(args.size() == 3);
 
@@ -59,6 +63,10 @@ struct ResolutionTrack {
 struct Resolution4S {
   float yMin{0.4};
   float yMax{1.2};
+
+  Resolution4S () = default;
+  Resolution4S (float _yMin, float _yMax) :
+	  yMin(_yMin), yMax(_yMax) {};
 
   Result operator()(vector<Result> args, const vector<string> &) {
 
@@ -86,6 +94,10 @@ struct Resolution4S {
 struct ResolutionMH {
   float yMin{-0.6};
   float yMax{0.6};
+
+  ResolutionMH () = default;
+  ResolutionMH (float _yMin, float _yMax) :
+	  yMin(_yMin), yMax(_yMax) {};
 
   Result operator()(std::vector<Result> args, const vector<string> &argNames) const {
     assert(args.size() == 3);
@@ -321,7 +333,9 @@ int process(
         "pion",
         "pion_neg",
         "mc_proton",
-        "mc_pion"};
+        "mc_pion",
+        "mc_pion_neg"
+    };
     std::vector<std::string> axes{"pT", "y"};
     std::vector<std::string> psd_references{"psd1", "psd2", "psd3"};
     std::vector<std::string> components{"XX", "YY"};
