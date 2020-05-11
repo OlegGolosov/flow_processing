@@ -45,18 +45,53 @@ struct ResolutionTrack {
 	  yMin(_yMin), yMax(_yMax) {};
 
   Result operator()(std::vector<Result> args, const vector<string> &argNames) const {
-    assert(args.size() == 3);
+    //assert(args.size() == 3);
+    assert(args.size() > 0);
 
     // multiplication of the two observables is undefined
     // -> convert to REFERENCE
-    Result nom1 = args[0];
-    nom1 = SetReference(nom1);
-    nom1 = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
-    Result nom2 = args[1];
-    nom2 = SetReference(nom2);
-    nom2 = RebinRapidity(nom2, {yMin, yMax}).Projection({"Centrality"});
-    Result denom = args[2];
-    return Qn::Sqrt(nom1 * nom2 / denom);
+    Result result;
+    if (args.size() == 3)
+    {
+      Result nom1 = args[0];
+      nom1 = SetReference(nom1);
+      nom1 = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
+      // flip sign
+      if (argNames[0].find("pion") < argNames[0].size()) {
+        nom1 = nom1 * (-1);
+      }
+      Result nom2 = args[1];
+      nom2 = SetReference(nom2);
+      nom2 = RebinRapidity(nom2, {yMin, yMax}).Projection({"Centrality"});
+      Result denom = args[2];
+      result = Qn::Sqrt(nom1 * nom2 / denom);
+    }
+    else if (args.size() == 2)
+    {
+      Result nom1 = args[0];
+      nom1 = SetReference(nom1);
+      nom1 = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
+      // flip sign
+      if (argNames[0].find("pion") < argNames[0].size()) {
+        nom1 = nom1 * (-1);
+      }
+      Result nom2 = args[1];
+      nom2 = SetReference(nom2);
+      nom2 = RebinRapidity(nom2, {yMin, yMax}).Projection({"Centrality"});
+      result = Qn::Sqrt(nom1 * nom2);
+    }
+    else if (args.size() == 1)
+    {
+      Result nom1 = args[0];
+      nom1 = SetReference(nom1);
+      nom1 = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
+      // flip sign
+      if (argNames[0].find("pion") < argNames[0].size()) {
+        nom1 = nom1 * (-1);
+      }
+      result = nom1;
+    }
+    return result;
   }
 };
 
@@ -83,6 +118,11 @@ struct Resolution4S {
       nom = SetReference(nom);
       nom = RebinRapidity(nom, {yMin, yMax}).Projection({"Centrality"});
       return nom / RT;
+    } else if (args.size() == 1) {
+      Result nom = args[0];
+      nom = SetReference(nom);
+      nom = RebinRapidity(nom, {yMin, yMax}).Projection({"Centrality"});
+      return nom;
     }
 
     assert(0);
@@ -100,26 +140,41 @@ struct ResolutionMH {
 	  yMin(_yMin), yMax(_yMax) {};
 
   Result operator()(std::vector<Result> args, const vector<string> &argNames) const {
-    assert(args.size() == 3);
+    assert(args.size() == 3 || args.size() == 1);
+    Result result;
+    if (args.size() == 3)
+    {
+      auto nom1 = args[0];
+      auto nom2 = args[1];
+      auto denom = args[2];
 
-    auto nom1 = args[0];
-    auto nom2 = args[1];
-    auto denom = args[2];
+      // flip sign
+      if (argNames[0].find("X2YY") < argNames[0].size()) {
+        nom1 = nom1 * (-1);
+      }
 
-    // flip sign
-    if (argNames[0].find("X2YY") < argNames[0].size()) {
-      nom1 = nom1 * (-1);
+      // flip sign
+      if (argNames[2].find("X2YY") < argNames[2].size()) {
+        denom = denom * (-1);
+      }
+
+      nom1 = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
+      denom = RebinRapidity(denom, {yMin, yMax}).Projection({"Centrality"});
+
+      result = Qn::Sqrt(nom1 * nom2 / denom);
     }
+    else if (args.size() == 1)
+    {
+      auto nom1 = args[0];
 
-    // flip sign
-    if (argNames[2].find("X2YY") < argNames[2].size()) {
-      denom = denom * (-1);
+      // flip sign
+      if (argNames[0].find("X2YY") < argNames[0].size()) {
+        nom1 = nom1 * (-1);
+      }
+
+      result = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
     }
-
-    nom1 = RebinRapidity(nom1, {yMin, yMax}).Projection({"Centrality"});
-    denom = RebinRapidity(denom, {yMin, yMax}).Projection({"Centrality"});
-
-    return Qn::Sqrt(nom1 * nom2 / denom);
+    return result;
   }
 };
 
@@ -186,10 +241,9 @@ Result FlowV2Opt3(std::vector<Result> args, const vector<string> &argNames) {
 }
 
 int process(
-    std::string input_name = "/home/eugene/analysis/flow/na61/pbpb/13agev/16_011/corr.root",
-    std::string output_name = "/home/eugene/analysis/flow/na61/pbpb/13agev/16_011/corr_processed.root"
+    std::string input_name = "corr_2.root",
+    std::string output_name = "corr_processed.root"
 ) {
-
   using std::vector;
   using std::string;
 
@@ -198,6 +252,27 @@ int process(
 
   /** Resolution PSD **/
   {
+
+    /** 4S **/
+    for (auto particle:{"proton","pion_pos","pion_neg"})
+    {
+      for (auto psd:{"psd1","psd2","psd3"})
+      {
+        for (auto comp:{"XX","YY","XY","YX"})
+        {
+          rm.Define(Form ("%s_y_%s_%s_4S", particle, psd, comp), {Form ("%s_y_%s_%s", particle, psd, comp)}, ResolutionTrack{0.8, 1.2});
+        }
+      }
+      rm.Define(Form("RES_psd1_psd3_%s_X", particle), {Form("%s_y_psd1_XX", particle), Form("%s_y_psd3_XX", particle), "psd3_psd1_XX"}, ResolutionTrack{0.8, 1.2});
+      rm.Define(Form("RES_psd1_psd3_%s_Y", particle), {Form("%s_y_psd1_YY", particle), Form("%s_y_psd3_YY", particle), "psd3_psd1_YY"}, ResolutionTrack{0.8, 1.2});
+      rm.Define(Form("RES_psd1_%s_4S_X", particle), {"psd3_psd1_XX", Form("RES_psd1_psd3_%s_X", particle), Form("%s_y_psd3_XX", particle)}, Resolution4S{0.8, 1.2});
+      rm.Define(Form("RES_psd2_%s_4S_X", particle), {Form("%s_y_psd2_XX", particle), Form("RES_psd1_psd3_%s_X", particle)}, Resolution4S{0.8, 1.2});
+      rm.Define(Form("RES_psd3_%s_4S_X", particle), {"psd3_psd1_XX", Form("RES_psd1_psd3_%s_X", particle), Form("%s_y_psd1_XX", particle)}, Resolution4S{0.8, 1.2});
+      rm.Define(Form("RES_psd1_%s_4S_Y", particle), {"psd3_psd1_YY", Form("RES_psd1_psd3_%s_Y", particle), Form("%s_y_psd3_YY", particle)}, Resolution4S{0.8, 1.2});
+      rm.Define(Form("RES_psd2_%s_4S_Y", particle), {Form("%s_y_psd2_YY", particle), Form("RES_psd1_psd3_%s_Y", particle)}, Resolution4S{0.8, 1.2});
+      rm.Define(Form("RES_psd3_%s_4S_Y", particle), {"psd3_psd1_YY", Form("RES_psd1_psd3_%s_Y", particle), Form("%s_y_psd1_YY", particle)}, Resolution4S{0.8, 1.2});
+    }
+
     /** 3S **/
     rm.Define("RES_psd1_3S_X", {"psd1_psd2_XX", "psd3_psd1_XX", "psd2_psd3_XX"}, Resolution3Sub);
     rm.Define("RES_psd2_3S_X", {"psd1_psd2_XX", "psd2_psd3_XX", "psd3_psd1_XX"}, Resolution3Sub);
@@ -207,139 +282,80 @@ int process(
     rm.Define("RES_psd2_3S_Y", {"psd1_psd2_YY", "psd2_psd3_YY", "psd3_psd1_YY"}, Resolution3Sub);
     rm.Define("RES_psd3_3S_Y", {"psd3_psd1_YY", "psd2_psd3_YY", "psd1_psd2_YY"}, Resolution3Sub);
 
-    /** 4S **/
-    rm.Define("RES_psd1_psd3_T_X", {"proton_y_psd1_XX", "proton_y_psd3_XX", "psd3_psd1_XX"}, ResolutionTrack{0.8, 1.2});
-    rm.Define("RES_psd1_psd3_T_Y", {"proton_y_psd1_YY", "proton_y_psd3_YY", "psd3_psd1_YY"}, ResolutionTrack{0.8, 1.2});
-
-    rm.Define("RES_psd1_4S_X", {"psd3_psd1_XX", "RES_psd1_psd3_T_X", "proton_y_psd3_XX"}, Resolution4S{0.8, 1.2});
-    rm.Define("RES_psd2_4S_X", {"proton_y_psd2_XX", "RES_psd1_psd3_T_X"}, Resolution4S{0.8, 1.2});
-    rm.Define("RES_psd3_4S_X", {"psd3_psd1_XX", "RES_psd1_psd3_T_X", "proton_y_psd1_XX"}, Resolution4S{0.8, 1.2});
-
-    rm.Define("RES_psd1_4S_Y", {"psd3_psd1_YY", "RES_psd1_psd3_T_Y", "proton_y_psd3_YY"}, Resolution4S{0.8, 1.2});
-    rm.Define("RES_psd2_4S_Y", {"proton_y_psd2_YY", "RES_psd1_psd3_T_Y"}, Resolution4S{0.8, 1.2});
-    rm.Define("RES_psd3_4S_Y", {"psd3_psd1_YY", "RES_psd1_psd3_T_Y", "proton_y_psd1_YY"}, Resolution4S{0.8, 1.2});
-
     /** Mixed-harmonics **/
     {
       ResolutionMH resolutionMH{-0.4, 0.8};
-      vector<string> ref_particles{"proton", "pion", "pion_neg"};
 
-      rm.Define("RES_psd1_MH_X1_proton",
-                {"proton_y_psd1_psd2_X2XX", "psd3_psd1_XX", "proton_y_psd2_psd3_X2XX"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_X2_proton",
-                {"proton_y_psd1_psd2_Y2XY", "psd3_psd1_XX", "proton_y_psd2_psd3_Y2YX"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_X_proton", {"RES_psd1_MH_X1_proton", "RES_psd1_MH_X2_proton",}, Combine);
-      rm.Define("RES_psd1_MH_Y1_proton",
-                {"proton_y_psd1_psd2_X2YY", "psd3_psd1_YY", "proton_y_psd2_psd3_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_Y2_proton",
-                {"proton_y_psd1_psd2_Y2YX", "psd3_psd1_YY", "proton_y_psd2_psd3_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_Y_proton", {"RES_psd1_MH_Y1_proton", "RES_psd1_MH_Y2_proton",}, Combine);
+      for (auto particle:{"proton","pion_pos","pion_neg"})
+      {
+        for (auto comp:{"X2XX","X2YX","X2XY","X2YY","Y2XX","Y2YX","Y2XY","Y2YY"})
+        {
+          rm.Define(Form ("%s_y_psd1_psd2_%s_MH", particle, comp), {Form ("%s_y_psd1_psd2_%s", particle, comp)}, resolutionMH);
+          rm.Define(Form ("%s_y_psd2_psd3_%s_MH", particle, comp), {Form ("%s_y_psd2_psd3_%s", particle, comp)}, resolutionMH);
+        }
+        rm.Define(Form("RES_psd1_%s_MH_X1", particle),
+                  {Form("%s_y_psd1_psd2_X2XX", particle), "psd3_psd1_XX", Form("%s_y_psd2_psd3_X2XX", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd1_%s_MH_X2", particle),
+                  {Form("%s_y_psd1_psd2_Y2XY", particle), "psd3_psd1_XX", Form("%s_y_psd2_psd3_Y2YX", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd1_%s_MH_X", particle), {Form("RES_psd1_%s_MH_X1", particle), Form("RES_psd1_%s_MH_X2", particle),}, Combine);
+        rm.Define(Form("RES_psd1_%s_MH_Y1", particle),
+                  {Form("%s_y_psd1_psd2_X2YY", particle), "psd3_psd1_YY", Form("%s_y_psd2_psd3_Y2XY", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd1_%s_MH_Y2", particle),
+                  {Form("%s_y_psd1_psd2_Y2YX", particle), "psd3_psd1_YY", Form("%s_y_psd2_psd3_Y2XY", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd1_%s_MH_Y", particle), {Form("RES_psd1_%s_MH_Y1", particle), Form("RES_psd1_%s_MH_Y2", particle),}, Combine);
 
-      rm.Define("RES_psd3_MH_X1_proton",
-                {"proton_y_psd2_psd3_X2XX", "psd3_psd1_XX", "proton_y_psd1_psd2_X2XX"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_X2_proton",
-                {"proton_y_psd2_psd3_Y2YX", "psd3_psd1_XX", "proton_y_psd1_psd2_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_X_proton", {"RES_psd3_MH_X1_proton", "RES_psd3_MH_X2_proton",}, Combine);
-      rm.Define("RES_psd3_MH_Y1_proton",
-                {"proton_y_psd2_psd3_Y2YX", "psd3_psd1_YY", "proton_y_psd1_psd2_Y2YX"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_Y2_proton",
-                {"proton_y_psd2_psd3_X2YY", "psd3_psd1_YY", "proton_y_psd1_psd2_X2YY"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_Y_proton", {"RES_psd3_MH_Y1_proton", "RES_psd3_MH_Y2_proton",}, Combine);
-
-      rm.Define("RES_psd1_MH_X1_pion",
-                {"pion_y_psd1_psd2_X2XX", "psd3_psd1_XX", "pion_y_psd2_psd3_X2XX"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_X2_pion",
-                {"pion_y_psd1_psd2_Y2XY", "psd3_psd1_XX", "pion_y_psd2_psd3_Y2YX"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_X_pion", {"RES_psd1_MH_X1_pion", "RES_psd1_MH_X2_pion",}, Combine);
-      rm.Define("RES_psd1_MH_Y1_pion",
-                {"pion_y_psd1_psd2_X2YY", "psd3_psd1_YY", "pion_y_psd2_psd3_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_Y2_pion",
-                {"pion_y_psd1_psd2_Y2YX", "psd3_psd1_YY", "pion_y_psd2_psd3_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_Y_pion", {"RES_psd1_MH_Y1_pion", "RES_psd1_MH_Y2_pion",}, Combine);
-
-      rm.Define("RES_psd3_MH_X1_pion",
-                {"pion_y_psd2_psd3_X2XX", "psd3_psd1_XX", "pion_y_psd1_psd2_X2XX"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_X2_pion",
-                {"pion_y_psd2_psd3_Y2YX", "psd3_psd1_XX", "pion_y_psd1_psd2_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_X_pion", {"RES_psd3_MH_X1_pion", "RES_psd3_MH_X2_pion",}, Combine);
-      rm.Define("RES_psd3_MH_Y1_pion",
-                {"pion_y_psd2_psd3_Y2YX", "psd3_psd1_YY", "pion_y_psd1_psd2_Y2YX"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_Y2_pion",
-                {"pion_y_psd2_psd3_X2YY", "psd3_psd1_YY", "pion_y_psd1_psd2_X2YY"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_Y_pion", {"RES_psd3_MH_Y1_pion", "RES_psd3_MH_Y2_pion",}, Combine);
-
-      rm.Define("RES_psd1_MH_X1_pion_neg",
-                {"pion_neg_y_psd1_psd2_X2XX", "psd3_psd1_XX", "pion_neg_y_psd2_psd3_X2XX"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_X2_pion_neg",
-                {"pion_neg_y_psd1_psd2_Y2XY", "psd3_psd1_XX", "pion_neg_y_psd2_psd3_Y2YX"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_X_pion_neg", {"RES_psd1_MH_X1_pion_neg", "RES_psd1_MH_X2_pion_neg",}, Combine);
-      rm.Define("RES_psd1_MH_Y1_pion_neg",
-                {"pion_neg_y_psd1_psd2_X2YY", "psd3_psd1_YY", "pion_neg_y_psd2_psd3_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_Y2_pion_neg",
-                {"pion_neg_y_psd1_psd2_Y2YX", "psd3_psd1_YY", "pion_neg_y_psd2_psd3_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd1_MH_Y_pion_neg", {"RES_psd1_MH_Y1_pion_neg", "RES_psd1_MH_Y2_pion_neg",}, Combine);
-
-      rm.Define("RES_psd3_MH_X1_pion_neg",
-                {"pion_neg_y_psd2_psd3_X2XX", "psd3_psd1_XX", "pion_neg_y_psd1_psd2_X2XX"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_X2_pion_neg",
-                {"pion_neg_y_psd2_psd3_Y2YX", "psd3_psd1_XX", "pion_neg_y_psd1_psd2_Y2XY"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_X_pion_neg", {"RES_psd3_MH_X1_pion_neg", "RES_psd3_MH_X2_pion_neg",}, Combine);
-      rm.Define("RES_psd3_MH_Y1_pion_neg",
-                {"pion_neg_y_psd2_psd3_Y2YX", "psd3_psd1_YY", "pion_neg_y_psd1_psd2_Y2YX"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_Y2_pion_neg",
-                {"pion_neg_y_psd2_psd3_X2YY", "psd3_psd1_YY", "pion_neg_y_psd1_psd2_X2YY"},
-                resolutionMH);
-      rm.Define("RES_psd3_MH_Y_pion_neg", {"RES_psd3_MH_Y1_pion_neg", "RES_psd3_MH_Y2_pion_neg",}, Combine);
-
+        rm.Define(Form("RES_psd3_%s_MH_X1", particle),
+                  {Form("%s_y_psd2_psd3_X2XX", particle), "psd3_psd1_XX", Form("%s_y_psd1_psd2_X2XX", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd3_%s_MH_X2", particle),
+                  {Form("%s_y_psd2_psd3_Y2YX", particle), "psd3_psd1_XX", Form("%s_y_psd1_psd2_Y2XY", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd3_%s_MH_X", particle), {Form("RES_psd3_%s_MH_X1", particle), Form("RES_psd3_%s_MH_X2", particle),}, Combine);
+        rm.Define(Form("RES_psd3_%s_MH_Y1", particle),
+                  {Form("%s_y_psd2_psd3_Y2YX", particle), "psd3_psd1_YY", Form("%s_y_psd1_psd2_Y2YX", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd3_%s_MH_Y2", particle),
+                  {Form("%s_y_psd2_psd3_X2YY", particle), "psd3_psd1_YY", Form("%s_y_psd1_psd2_X2YY", particle)},
+                  resolutionMH);
+        rm.Define(Form("RES_psd3_%s_MH_Y", particle), {Form("RES_psd3_%s_MH_Y1", particle), Form("RES_psd3_%s_MH_Y2", particle),}, Combine);
+      }
     }
-
+    
     /** MC **/
-    rm.Define("RES_psd1_MC_X", {"psd1_psi_XX"}, ResolutionMC);
-    rm.Define("RES_psd2_MC_X", {"psd1_psi_XX"}, ResolutionMC);
-    rm.Define("RES_psd3_MC_X", {"psd3_psi_XX"}, ResolutionMC);
-    rm.Define("RES_psd1_MC_Y", {"psd1_psi_YY"}, ResolutionMC);
-    rm.Define("RES_psd2_MC_Y", {"psd1_psi_YY"}, ResolutionMC);
-    rm.Define("RES_psd3_MC_Y", {"psd3_psi_YY"}, ResolutionMC);
-
+    for (auto det:{"psd1","psd2","psd3"})
+    {
+      rm.Define(Form("RES_%s_MC_X",det), {Form("%s_psi_XX", det)}, ResolutionMC);
+      rm.Define(Form("RES_%s_MC_Y",det), {Form("%s_psi_YY", det)}, ResolutionMC);
+    }
   }
 
   /** V1 **/
   {
     std::vector<std::string> particles{
         "proton",
-        "pion",
+        "pion_pos",
         "pion_neg",
+        "kaon_pos",
+        "kaon_neg",
+        "mcPid_proton",
+        "mcPid_pion_pos",
+        "mcPid_pion_neg"
+        "mcPid_kaon_pos",
+        "mcPid_kaon_neg",
         "mc_proton",
-        "mc_pion",
+        "mc_pion_pos",
         "mc_pion_neg"
+        "mc_kaon_pos",
+        "mc_kaon_neg",
     };
     std::vector<std::string> axes{"pT", "y"};
     std::vector<std::string> psd_references{"psd1", "psd2", "psd3"};
     std::vector<std::string> components{"XX", "YY"};
-    std::vector<std::string> resolution_methods{"3S", "4S", "MC"};
+    std::vector<std::string> resolution_methods{"3S", "MC", "proton_4S", "pion_neg_4S", "pion_pos_4S", "proton_MH", "pion_neg_MH", "pion_pos_MH"};
 
     // proton_y_psd1_XX
     // particle:axis:psd_reference:component
@@ -423,116 +439,126 @@ int process(
     } // particles
   }
 
-  /*** V2 ***/
-  {
-    std::vector<std::string> particles{
-        "proton",
-        "pion",
-        "pion_neg",
-        "mc_proton",
-        "mc_pion"};
-    std::vector<std::string> axes{"pT", "y"};
-    std::vector<std::string> components{"X", "Y"};
-    std::vector<std::string> refPsd{"psd1", "psd2", "psd3"};
-    std::vector<std::string> refComponents{"XX", "YY", "XY", "YX"};
-
-    for (const auto &particle : particles) {
-      for (const auto &axis : axes) {
-        for (const auto &refPSD1 : refPsd) {
-          for (const auto &refPSD2 : refPsd) {
-            if (refPSD1 == refPSD2) continue;
-
-            for (const auto &component : components) {
-
-              for (const auto &ref_component : refComponents) {
-                /*********** opt 1 ***********/
-                // this option is relevant for all combinations
-                // let this to be default
-                if (ref_component == "XY" || ref_component == "YX") {
-                  string
-                      v2_name{sprintf("v2_%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
-                  )};
-
-                  string
-                      uQQ_name{sprintf("%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
-                  )};
-
-                  string
-                      R1_name{sprintf("RES_%s_3S_%s", refPSD1, string(ref_component.begin(), ref_component.begin() + 1)
-                  )};
-                  string R2_name
-                      {sprintf("RES_%s_3S_%s", refPSD2, string(ref_component.begin() + 1, ref_component.begin() + 2)
-                      )};
-
-                  rm.Define(v2_name, {uQQ_name, R1_name, R2_name}, FlowV2Opt1);
-                }
-                /*********** opt 2 ***********/
-                if (ref_component == "XY" || ref_component == "YX") {
-                  string
-                      v2_name(sprintf("v2_%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
-                  ));
-
-                  string
-                      uQQ1_name{sprintf("%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
-                  )};
-                  string uQQ2_name{sprintf("%s_%s_%s_%s_%s2%s",
-                                           particle,
-                                           axis,
-                                           refPSD1,
-                                           refPSD2,
-                                           component,
-                                           string(ref_component.rbegin(), ref_component.rend())
-                  )};
-                  string QQ1_name{sprintf("%s_%s_XX", refPSD1, refPSD2)};
-                  string QQ2_name{sprintf("%s_%s_YY", refPSD1, refPSD2)};
-//                  rm.Define(v2_name, {uQQ1_name, uQQ2_name, QQ1_name, QQ2_name}, FlowV2Opt2);
-                }
-                /*********** opt 3 ***********/
-                if (ref_component == "XX" || ref_component == "YY") {
-                  string
-                      v2_name(sprintf("v2_%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
-                  ));
-
-                  string
-                      uQQ_name{sprintf("%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
-                  )};
-
-                  string QQ_name{sprintf("%s_%s_%s", refPSD1, refPSD2, ref_component)};
-                  rm.Define(v2_name, {uQQ_name, QQ_name}, FlowV2Opt3);
-
-                }
-
-              } // ref components
-
-            } // component
-
-
-            // combine non-zero components
-            {
-              string v2_pattern{sprintf("v2_%s_%s_%s_%s_(X2XX|X2YY|Y2XY|Y2YX)", particle, axis, refPSD1, refPSD2)};
-              string v2_name{sprintf("v2_%s_%s_%s_%s_CC", particle, axis, refPSD1, refPSD2)};
-              rm.Define(v2_name, rm.GetMatchingName(v2_pattern), Combine);
-            }
-          } // ref PSD2
-        } // ref PSD1
-
-        // combine reference PSD
-        for (const string &component : {"X2XX", "X2YY", "Y2YX", "Y2XY"}) {
-          string v2_pattern{sprintf("v2_%s_%s_psd(1|2|3)_psd(1|2|3)_%s", particle, axis, component)};
-          string v2_name{sprintf("v2_%s_%s_%s_CR", particle, axis, component)};
-          rm.Define(v2_name, rm.GetMatchingName(v2_pattern), Combine);
-        }
-
-        // Good combination: all PSDs and Y2XY & Y2YX only
-        {
-          string v2_pattern{sprintf("v2_%s_%s_psd(1|2|3)_psd(1|2|3)_(Y2XY|Y2YX)", particle, axis)};
-          string v2_name{sprintf("v2_%s_%s_CA", particle, axis)};
-          rm.Define(v2_name, rm.GetMatchingName(v2_pattern), Combine);
-        }
-
-      } // axes
-    } // particles
-  }
+//  /*** V2 ***/
+//  {
+//    std::vector<std::string> particles{
+//        "proton",
+//        "mcPid_proton",
+//        "mc_proton",
+//        "pion_pos",
+//        "mcPid_pion_pos",
+//        "mc_pion_pos",
+//        "pion_neg",
+//        "mcPid_pion_neg",
+//        "mc_pion_neg",
+//        "kaon_pos",
+//        "mcPid_kaon_pos",
+//        "mc_kaon_pos",
+//        "kaon_neg",
+//        "mcPid_kaon_neg",
+//        "mc_kaon_neg"};
+//    std::vector<std::string> axes{"pT", "y"};
+//    std::vector<std::string> components{"X", "Y"};
+//    std::vector<std::string> refPsd{"psd1", "psd2", "psd3"};
+//    std::vector<std::string> refComponents{"XX", "YY", "XY", "YX"};
+//
+//    for (const auto &particle : particles) {
+//      for (const auto &axis : axes) {
+//        for (const auto &refPSD1 : refPsd) {
+//          for (const auto &refPSD2 : refPsd) {
+//            if (refPSD1 == refPSD2) continue;
+//
+//            for (const auto &component : components) {
+//
+//              for (const auto &ref_component : refComponents) {
+//                /*********** opt 1 ***********/
+//                // this option is relevant for all combinations
+//                // let this to be default
+//                if (ref_component == "XY" || ref_component == "YX") {
+//                  string
+//                      v2_name{sprintf("v2_%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
+//                  )};
+//
+//                  string
+//                      uQQ_name{sprintf("%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
+//                  )};
+//
+//                  string
+//                      R1_name{sprintf("RES_%s_3S_%s", refPSD1, string(ref_component.begin(), ref_component.begin() + 1)
+//                  )};
+//                  string R2_name
+//                      {sprintf("RES_%s_3S_%s", refPSD2, string(ref_component.begin() + 1, ref_component.begin() + 2)
+//                      )};
+//
+//                  rm.Define(v2_name, {uQQ_name, R1_name, R2_name}, FlowV2Opt1);
+//                }
+//                /*********** opt 2 ***********/
+//                if (ref_component == "XY" || ref_component == "YX") {
+//                  string
+//                      v2_name(sprintf("v2_%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
+//                  ));
+//
+//                  string
+//                      uQQ1_name{sprintf("%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
+//                  )};
+//                  string uQQ2_name{sprintf("%s_%s_%s_%s_%s2%s",
+//                                           particle,
+//                                           axis,
+//                                           refPSD1,
+//                                           refPSD2,
+//                                           component,
+//                                           string(ref_component.rbegin(), ref_component.rend())
+//                  )};
+//                  string QQ1_name{sprintf("%s_%s_XX", refPSD1, refPSD2)};
+//                  string QQ2_name{sprintf("%s_%s_YY", refPSD1, refPSD2)};
+////                  rm.Define(v2_name, {uQQ1_name, uQQ2_name, QQ1_name, QQ2_name}, FlowV2Opt2);
+//                }
+//                /*********** opt 3 ***********/
+//                if (ref_component == "XX" || ref_component == "YY") {
+//                  string
+//                      v2_name(sprintf("v2_%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
+//                  ));
+//
+//                  string
+//                      uQQ_name{sprintf("%s_%s_%s_%s_%s2%s", particle, axis, refPSD1, refPSD2, component, ref_component
+//                  )};
+//
+//                  string QQ_name{sprintf("%s_%s_%s", refPSD1, refPSD2, ref_component)};
+//                  rm.Define(v2_name, {uQQ_name, QQ_name}, FlowV2Opt3);
+//
+//                }
+//
+//              } // ref components
+//
+//            } // component
+//
+//
+//            // combine non-zero components
+//            {
+//              string v2_pattern{sprintf("v2_%s_%s_%s_%s_(X2XX|X2YY|Y2XY|Y2YX)", particle, axis, refPSD1, refPSD2)};
+//              string v2_name{sprintf("v2_%s_%s_%s_%s_CC", particle, axis, refPSD1, refPSD2)};
+//              rm.Define(v2_name, rm.GetMatchingName(v2_pattern), Combine);
+//            }
+//          } // ref PSD2
+//        } // ref PSD1
+//
+//        // combine reference PSD
+//        for (const string &component : {"X2XX", "X2YY", "Y2YX", "Y2XY"}) {
+//          string v2_pattern{sprintf("v2_%s_%s_psd(1|2|3)_psd(1|2|3)_%s", particle, axis, component)};
+//          string v2_name{sprintf("v2_%s_%s_%s_CR", particle, axis, component)};
+//          rm.Define(v2_name, rm.GetMatchingName(v2_pattern), Combine);
+//        }
+//
+//        // Good combination: all PSDs and Y2XY & Y2YX only
+//        {
+//          string v2_pattern{sprintf("v2_%s_%s_psd(1|2|3)_psd(1|2|3)_(Y2XY|Y2YX)", particle, axis)};
+//          string v2_name{sprintf("v2_%s_%s_CA", particle, axis)};
+//          rm.Define(v2_name, rm.GetMatchingName(v2_pattern), Combine);
+//        }
+//
+//      } // axes
+//    } // particles
+//  }
   rm.SaveAs(output_name);
 
   return 0;

@@ -88,7 +88,7 @@ int drawV1(
   if (dir) {
     auto outDir = fo.mkdir("v1_systematics");
 
-    for (const string &particle : {"proton", "pion", "pion_neg"}) {
+    for (const string &particle : {"proton", "pion_pos", "pion_neg"}) {
       string pattern{format("v1_{}_(pT|y)_(psd[1-3])_({})_(X|Y)_1", particle, resolutionMethod)};
 
       TMultiGraph v1vsPtSystematicsMG;
@@ -142,7 +142,7 @@ int drawV1(
         auto labelLeft = MakePaveText({
                                           "directed flow #it{v}_{1} (p_{T})",
                                           map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                               {"pion", "positive pions"}}).at(particle),
+                                                               {"pion_pos", "positive pions"}}).at(particle),
                                           "centrality 10-25% (E_{PSD})",
                                           format("{} resolution", resolutionMethod),
                                           format("{} < #it{{y}} < {}", yLo, yHi),
@@ -150,7 +150,7 @@ int drawV1(
         auto labelRight = MakePaveText({
                                            "directed flow #it{v}_{1} (#it{y})",
                                            map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                                {"pion", "positive pions"}}).at(particle),
+                                                                {"pion_pos", "positive pions"}}).at(particle),
                                            "centrality 10-25% (E_{PSD})",
                                            format("{} resolution", resolutionMethod),
                                            format("{} < p_{{T}} < {} GeV/#it{{c}}", ptLo, ptHi),
@@ -218,7 +218,7 @@ int drawV1(
         auto labelLeft = MakePaveText({
                                           "directed flow #it{v}_{1} (p_{T})",
                                           map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                               {"pion", "positive pions"}}).at(particle),
+                                                               {"pion_pos", "positive pions"}}).at(particle),
                                           "combined components",
                                           "centrality 10-25% (E_{PSD})",
                                           format("{} resolution", resolutionMethod),
@@ -227,7 +227,7 @@ int drawV1(
         auto labelRight = MakePaveText({
                                            "directed flow #it{v}_{1} (#it{y})",
                                            map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                                {"pion", "positive pions"}}).at(particle),
+                                                                {"pion_pos", "positive pions"}}).at(particle),
                                            "combined components",
                                            "centrality 10-25% (E_{PSD})",
                                            format("{} resolution", resolutionMethod),
@@ -289,7 +289,7 @@ int drawV1(
         auto labelLeft = MakePaveText({
                                           "directed flow #it{v}_{1} (p_{T})",
                                           map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                               {"pion", "positive pions"}}).at(particle),
+                                                               {"pion_pos", "positive pions"}}).at(particle),
                                           "combined PSD",
                                           "centrality 10-25% (E_{PSD})",
                                           format("{} resolution", resolutionMethod),
@@ -298,7 +298,7 @@ int drawV1(
         auto labelRight = MakePaveText({
                                            "directed flow #it{v}_{1} (#it{y})",
                                            map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                                {"pion", "positive pions"}}).at(particle),
+                                                                {"pion_pos", "positive pions"}}).at(particle),
                                            "combined PSD",
                                            "centrality 10-25% (E_{PSD})",
                                            format("{} resolution", resolutionMethod),
@@ -318,7 +318,7 @@ int drawV1(
         auto labelCommon = MakePaveText({
                                             "directed flow #it{v}_{1} (p_{T})",
                                             map<string, string>({{"proton", "protons"}, {"pion_neg", "negative pions"},
-                                                                 {"pion", "positive pions"}}).at(particle),
+                                                                 {"pion_pos", "positive pions"}}).at(particle),
                                             "centrality 10-25% (E_{PSD})",
                                             format("{} resolution", resolutionMethod),
                                             format("{} < #it{{y}} < {}", yLo, yHi),
@@ -354,7 +354,7 @@ int drawV1(
 
     };
 
-    for (const string &particle : {"proton", "pion", "pion_neg"}) {
+    for (const string &particle : {"proton", "pion_pos", "pion_neg"}) {
 
       string pattern{Form("v1_%s_(pT|y)_4S_CA_(\\d+)", particle.c_str())};
 
@@ -410,19 +410,19 @@ int drawV1(
 
     map<string, int> color{
         {"proton", kGreen + 2},
-        {"pion", kRed},
+        {"pion_pos", kRed},
         {"pion_neg", kBlue}
     };
 
     map<string, int> markerStyle{
         {"proton", kFullDiamond},
-        {"pion", kFullCircle},
+        {"pion_pos", kFullCircle},
         {"pion_neg", kFullSquare},
     };
 
     map<string, const char *> label{
         {"proton", "p"},
-        {"pion", "#pi^{+}"},
+        {"pion_pos", "#pi^{+}"},
         {"pion_neg", "#pi^{-}"},
     };
 

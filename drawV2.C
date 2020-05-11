@@ -69,7 +69,7 @@ int drawV2(
         {"4", kMagenta + 2}
     };
 
-    for (const string &particle : {"proton", "pion", "pion_neg"}) {
+    for (const string &particle : {"proton", "pion_pos", "pion_neg"}) {
 
       TMultiGraph v2vsPtCentralityMG;
       TMultiGraph v2vsYCentralityMG;
@@ -117,19 +117,19 @@ int drawV2(
 
     map<string, int> color{
         {"proton", kGreen + 2},
-        {"pion", kRed},
+        {"pion_pos", kRed},
         {"pion_neg", kBlue},
     };
 
     map<string, int> markerStyle{
         {"proton", kFullDiamond},
-        {"pion", kFullCircle},
+        {"pion_pos", kFullCircle},
         {"pion_neg", kFullSquare},
     };
 
     map<string, string> label{
         {"proton", "p"},
-        {"pion", "#pi^{+}"},
+        {"pion_pos", "#pi^{+}"},
         {"pion_neg", "#pi^{-}"},
     };
 
@@ -183,7 +183,7 @@ int drawV2(
         {"psd3_psd1", kBlue},
     };
 
-    for (const string &particle : {"proton", "pion", "pion_neg"}) {
+    for (const string &particle : {"proton", "pion_pos", "pion_neg"}) {
       string pattern{Form("v2_%s_(pT|y)_(psd\\d_psd\\d)_CC_0", particle.c_str())};
 
       TMultiGraph v2vsYRefSubevents;
@@ -219,7 +219,7 @@ int drawV2(
       }
     }
 
-    for (const string &particle : {"proton", "pion", "pion_neg"}) {
+    for (const string &particle : {"proton", "pion_pos", "pion_neg"}) {
       string pattern{Form("v2_%s_(pT|y)_(X2XX|X2YY|Y2XY|Y2YX)_CR_0", particle.c_str())};
 
       TMultiGraph v2vsYComponents;

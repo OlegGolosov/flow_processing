@@ -106,13 +106,13 @@ int drawResolution(
 
     const map<string, int> colors{
         {"proton", kBlue + 2},
-        {"pion", kRed + 1},
+        {"pion_pos", kRed + 1},
         {"pion_neg", kMagenta + 1},
         {"all", kBlack},
     };
 
     const std::map<string, string> particle_names{
-        {"pion", "#pi^{+}"},
+        {"pion_pos", "#pi^{+}"},
         {"pion_neg", "#pi^{-}"},
         {"proton", "p"},
         {"all", "ALL"},
