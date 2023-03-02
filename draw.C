@@ -16,20 +16,10 @@ R__LOAD_LIBRARY(libBase.so)
 using namespace std;
 using namespace fmt;
 
+Qn::Axis centralityAxis{"Centrality", {0, 5, 10, 15, 25, 35, 45, 60, 80, 100.}};
+
 vector<tuple <vector<string>, vector<string>, string, string>> QQnames=
 {
-  //{{"psd1_psd2_(X|Y)(X|Y)"}, {"#LTQ^{PSD1}_{1,%s}Q^{PSD2}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"psd2_psd3_(X|Y)(X|Y)"}, {"#LTQ^{PSD2}_{1,%s}Q^{PSD3}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"psd3_psd1_(X|Y)(X|Y)"}, {"#LTQ^{PSD3}_{1,%s}Q^{PSD1}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"proton_psd1_(X|Y)(X|Y)"  }, {"#LTQ^{STS,p}_{1,%s}Q^{PSD1}_{1,%s}#GT"      }, "Centrality (%)", ""},
-  //{{"pion_pos_psd1_(X|Y)(X|Y)"}, {"#LTQ^{STS,#pi^{+}}_{1,%s}Q^{PSD1}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"pion_neg_psd1_(X|Y)(X|Y)"}, {"#LTQ^{STS,#pi^{-}}_{1,%s}Q^{PSD1}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"proton_psd2_(X|Y)(X|Y)"  }, {"#LTQ^{STS,p}_{1,%s}Q^{PSD2}_{1,%s}#GT"      }, "Centrality (%)", ""},
-  //{{"pion_pos_psd2_(X|Y)(X|Y)"}, {"#LTQ^{STS,#pi^{+}}_{1,%s}Q^{PSD2}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"pion_neg_psd2_(X|Y)(X|Y)"}, {"#LTQ^{STS,#pi^{-}}_{1,%s}Q^{PSD2}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"proton_psd3_(X|Y)(X|Y)"  }, {"#LTQ^{STS,p}_{1,%s}Q^{PSD3}_{1,%s}#GT"      }, "Centrality (%)", ""},
-  //{{"pion_pos_psd3_(X|Y)(X|Y)"}, {"#LTQ^{STS,#pi^{+}}_{1,%s}Q^{PSD3}_{1,%s}#GT"}, "Centrality (%)", ""},
-  //{{"pion_neg_psd3_(X|Y)(X|Y)"}, {"#LTQ^{STS,#pi^{-}}_{1,%s}Q^{PSD3}_{1,%s}#GT"}, "Centrality (%)", ""},
   {{"psd1_psd2_(X|Y)(X|Y)", "psd1_psi_psd2_psi_(X|Y)(X|Y)"}, 
    {"#LTQ^{PSD1}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
     "Centrality (%)", ""},
@@ -39,42 +29,33 @@ vector<tuple <vector<string>, vector<string>, string, string>> QQnames=
   {{"psd3_psd1_(X|Y)(X|Y)", "psd3_psi_psd1_psi_(X|Y)(X|Y)"}, 
    {"#LTQ^{PSD3}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
     "Centrality (%)", ""},
-  {{"proton_psd1_(X|Y)(X|Y)", "proton_psi_psd1_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,p}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{STS,p}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"proton_psd2_(X|Y)(X|Y)", "proton_psi_psd2_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,p}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{STS,p}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"proton_psd3_(X|Y)(X|Y)", "proton_psi_psd3_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,p}_{1,%s}Q^{PSD3}_{1,%s}#GT", "#LTQ^{STS,p}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"pion_pos_res_psd1_(X|Y)(X|Y)", "pion_pos_res_psi_psd1_psi_(X|Y)(X|Y)"}, 
+//  {{"proton_res_psd1_(X|Y)(X|Y)", "proton_res_psi_psd1_psi_(X|Y)(X|Y)"}, 
+//   {"#LTQ^{STS,p}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{STS,p}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
+//    "Centrality (%)", ""},
+//  {{"proton_res_psd2_(X|Y)(X|Y)", "proton_res_psi_psd2_psi_(X|Y)(X|Y)"}, 
+//   {"#LTQ^{STS,p}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{STS,p}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
+//    "Centrality (%)", ""},
+//  {{"proton_res_psd3_(X|Y)(X|Y)", "proton_res_psi_psd3_psi_(X|Y)(X|Y)"}, 
+//   {"#LTQ^{STS,p}_{1,%s}Q^{PSD3}_{1,%s}#GT", "#LTQ^{STS,p}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
+//    "Centrality (%)", ""},
+  {{"mcPid_pion_pos_res_psd1_(X|Y)(X|Y)", "mcPid_pion_pos_res_psi_psd1_psi_(X|Y)(X|Y)"}, 
    {"#LTQ^{STS,#pi+}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{STS,#pi+}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
     "Centrality (%)", ""},
-  {{"pion_pos_res_psd2_(X|Y)(X|Y)", "pion_pos_res_psi_psd2_psi_(X|Y)(X|Y)"}, 
+  {{"mcPid_pion_pos_res_psd2_(X|Y)(X|Y)", "mcPid_pion_pos_res_psi_psd2_psi_(X|Y)(X|Y)"}, 
    {"#LTQ^{STS,#pi+}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{STS,#pi+}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
     "Centrality (%)", ""},
-  {{"pion_pos_res_psd3_(X|Y)(X|Y)", "pion_pos_res_psi_psd3_psi_(X|Y)(X|Y)"}, 
+  {{"mcPid_pion_pos_res_psd3_(X|Y)(X|Y)", "mcPid_pion_pos_res_psi_psd3_psi_(X|Y)(X|Y)"}, 
    {"#LTQ^{STS,#pi+}_{1,%s}Q^{PSD3}_{1,%s}#GT", "#LTQ^{STS,#pi+}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
     "Centrality (%)", ""},
-  {{"pion_pos_psd1_(X|Y)(X|Y)", "pion_pos_psi_psd1_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,#pi+}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{STS,#pi+}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"pion_pos_psd2_(X|Y)(X|Y)", "pion_pos_psi_psd2_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,#pi+}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{STS,#pi+}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"pion_pos_psd3_(X|Y)(X|Y)", "pion_pos_psi_psd3_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,#pi+}_{1,%s}Q^{PSD3}_{1,%s}#GT", "#LTQ^{STS,#pi+}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"pion_neg_psd1_(X|Y)(X|Y)", "pion_neg_psi_psd1_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,#pi-}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{STS,#pi-}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"pion_neg_psd2_(X|Y)(X|Y)", "pion_neg_psi_psd2_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,#pi-}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{STS,#pi-}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
-  {{"pion_neg_psd3_(X|Y)(X|Y)", "pion_neg_psi_psd3_psi_(X|Y)(X|Y)"}, 
-   {"#LTQ^{STS,#pi-}_{1,%s}Q^{PSD3}_{1,%s}#GT", "#LTQ^{STS,#pi-}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
-    "Centrality (%)", ""},
+  //{{"pion_neg_res_psd1_(X|Y)(X|Y)", "pion_neg_res_psi_psd1_psi_(X|Y)(X|Y)"}, 
+  // {"#LTQ^{STS,#pi-}_{1,%s}Q^{PSD1}_{1,%s}#GT", "#LTQ^{STS,#pi-}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD1}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
+  //  "Centrality (%)", ""},
+  //{{"pion_neg_res_psd2_(X|Y)(X|Y)", "pion_neg_res_psi_psd2_psi_(X|Y)(X|Y)"}, 
+  // {"#LTQ^{STS,#pi-}_{1,%s}Q^{PSD2}_{1,%s}#GT", "#LTQ^{STS,#pi-}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD2}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
+  //  "Centrality (%)", ""},
+  //{{"pion_neg_res_psd3_(X|Y)(X|Y)", "pion_neg_res_psi_psd3_psi_(X|Y)(X|Y)"}, 
+  // {"#LTQ^{STS,#pi-}_{1,%s}Q^{PSD3}_{1,%s}#GT", "#LTQ^{STS,#pi-}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT#LTQ^{PSD3}_{1,%s}Q^{#Psi_{RP}}_{1,%s}#GT"},
+  //  "Centrality (%)", ""},
 };
 
 vector<tuple <vector<string>, vector<string>, string, string>> Q2QQnames=
@@ -92,25 +73,20 @@ vector<tuple <vector<string>, vector<string>, string, string>> Q2QQnames=
 vector<tuple <vector<string>, vector<string>, string, string>> resNames=
 {
   {{"RES_psd(.)_3S_(X)", "RES_psd(.)_MC_(X)", "RES_psd(.)_3S_(Y)", "RES_psd(.)_MC_(Y)"}, {"R^{PSD%s,3S}_{1,%s}", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,3S}_{1,%s}", "R^{PSD%s,3S}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_proton_psd1_psd3_(X|Y)", "RES_proton_MC_(X|Y)"}, {"R^{STS,p,3S}_{1,%s}", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_pion_pos_psd1_psd3_(X|Y)", "RES_pion_pos_MC_(X|Y)"}, {"R^{STS,p,3S}_{1,%s}", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_pion_neg_psd1_psd3_(X|Y)", "RES_pion_neg_MC_(X|Y)"}, {"R^{STS,p,3S}_{1,%s}", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(.)_proton_4S_(X)", "RES_psd(.)_MC_(X)","RES_psd(.)_proton_4S_(Y)", "RES_psd(.)_MC_(Y)"}, {"R^{PSD%s,4S}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,4S}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(.)_pion_pos_4S_(X)", "RES_psd(.)_MC_(X)","RES_psd(.)_pion_pos_4S_(Y)", "RES_psd(.)_MC_(Y)"}, {"R^{PSD%s,4S}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,4S}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(.)_pion_pos_res_4S_(X)", "RES_psd(.)_MC_(X)","RES_psd(.)_pion_pos_res_4S_(Y)", "RES_psd(.)_MC_(Y)"}, {"R^{PSD%s,4S}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,4S}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(.)_pion_neg_4S_(X)", "RES_psd(.)_MC_(X)","RES_psd(.)_pion_neg_4S_(Y)", "RES_psd(.)_MC_(Y)"}, {"R^{PSD%s,4S}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,4S}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(1)_proton_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_proton_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{p})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(3)_proton_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_proton_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{p})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(1|3)_proton_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_proton_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(1)_pion_pos_res_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_pion_pos_res_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(3)_pion_pos_res_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_pion_pos_res_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(1|3)_pion_pos_res_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_pion_pos_res_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)","R_{1}"},
-  {{"RES_psd(1)_pion_pos_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_pion_pos_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(3)_pion_pos_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_pion_pos_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(1|3)_pion_pos_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_pion_pos_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)","R_{1}"},
-  {{"RES_psd(1)_pion_neg_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_pion_neg_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi-})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(3)_pion_neg_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_pion_neg_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi-})"}, "Centrality (%)", "R_{1}"},
-  {{"RES_psd(1|3)_pion_neg_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_pion_neg_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
+  {{"RES_mcPid_pion_pos_res_psd1_psd3_(X|Y)", "RES_mcPid_pion_pos_res_MC_(X|Y)"}, {"R^{STS,p,3S}_{1,%s}", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
+  {{"RES_psd(.)_mcPid_pion_pos_res_4S_(X)", "RES_psd(.)_MC_(X)","RES_psd(.)_mcPid_pion_pos_res_4S_(Y)", "RES_psd(.)_MC_(Y)"}, {"R^{PSD%s,4S}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,4S}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(1)_proton_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_proton_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{p})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(3)_proton_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_proton_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{p})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(1|3)_proton_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_proton_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{p})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(1)_pion_pos_res_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_pion_pos_res_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(3)_pion_pos_res_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_pion_pos_res_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(1|3)_pion_pos_res_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_pion_pos_res_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)","R_{1}"},
+  //{{"RES_psd(1)_pion_pos_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_pion_pos_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(3)_pion_pos_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_pion_pos_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(1|3)_pion_pos_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_pion_pos_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi+})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)","R_{1}"},
+  //{{"RES_psd(1)_pion_neg_MH_(X1|Y1)", "RES_psd(1)_MC_(X|Y)", "RES_psd(1)_pion_neg_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi-})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(3)_pion_neg_MH_(X1|Y1)", "RES_psd(3)_MC_(X|Y)",  "RES_psd(3)_pion_neg_MH_(X2|Y2)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi-})"}, "Centrality (%)", "R_{1}"},
+  //{{"RES_psd(1|3)_pion_neg_MH_(X)", "RES_psd(1|3)_MC_(X)", "RES_psd(1|3)_pion_neg_MH_(Y)", "RES_psd(1|3)_MC_(Y)"}, {"R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}", "R^{PSD%s,MH}_{1,%s}(STS^{#pi-})", "R^{PSD%s,MC}_{1,%s}"}, "Centrality (%)", "R_{1}"},
 };
 
 vector<tuple <vector<string>, vector<string>, string, string>> uQnames=
@@ -131,7 +107,9 @@ vector<tuple <vector<string>, vector<string>, string, string>> v1names=
 //
   //{{"v1_proton_y_psd(1|2|3)_proton_4S_(X|Y)_0", "","v1_mc_proton_y_psi_(X|Y)_0"}, {"v^{p,PSD%s}_{1,%s}", "","v^{p,MC}_{1,%s}"}, "#it{y}", "v_{1}"},
   //{{"v1_mcPid_proton_y_psd(1|2|3)_proton_4S_(X|Y)_0", "","v1_mc_proton_y_psi_(X|Y)_0"}, {"v^{p,PSD%s}_{1,%s}(MC-pid)", "","v^{p,MC}_{1,%s}"}, "#it{y}", "v_{1}"},
-  //{{"v1_proton_y_psd(1|2|3)_pion_pos_4S_(X|Y)_0", "","v1_mc_proton_y_psi_(X|Y)_0"}, {"v^{p,PSD%s}_{1,%s}", "","v^{p,MC}_{1,%s}"}, "#it{y}", "v_{1}"},
+  {{"v1_proton_y_psd(1|2|3)_pion_pos_4S_(X)_1", "v1_mc_proton_y_psd(1|2|3)_pion_pos_4S_(X)_1", "v1_proton_y_psd(1|2|3)_pion_pos_4S_(Y)_1", "v1_mc_proton_y_psd(1|2|3)_pion_pos_4S_(Y)_1"}, {"reco, PSD%s, %s", "mc, PSD%s, %s","reco, PSD%s, %s", "mc, PSD%s, %s"}, "#it{y}", "v_{1}"},
+  {{"v1_pion_pos_y_psd(1|2|3)_pion_pos_4S_(X)_1", "v1_mc_pion_pos_y_psd(1|2|3)_pion_pos_4S_(X)_1", "v1_pion_pos_y_psd(1|2|3)_pion_pos_4S_(Y)_1", "v1_mc_pion_pos_y_psd(1|2|3)_pion_pos_4S_(Y)_1"}, {"reco, PSD%s, %s", "mc, PSD%s, %s","reco, PSD%s, %s", "mc, PSD%s, %s"}, "#it{y}", "v_{1}"},
+  {{"v1_pion_neg_y_psd(1|2|3)_pion_pos_4S_(X)_1", "v1_mc_pion_neg_y_psd(1|2|3)_pion_pos_4S_(X)_1", "v1_pion_neg_y_psd(1|2|3)_pion_pos_4S_(Y)_1", "v1_mc_pion_neg_y_psd(1|2|3)_pion_pos_4S_(Y)_1"}, {"reco, PSD%s, %s", "mc, PSD%s, %s","reco, PSD%s, %s", "mc, PSD%s, %s"}, "#it{y}", "v_{1}"},
   //{{"v1_mcPid_proton_y_psd(1|2|3)_pion_neg_4S_(X|Y)_0", "","v1_mc_proton_y_psi_(X|Y)_0"}, {"v^{p,PSD%s}_{1,%s}(MC-pid)", "","v^{p,MC}_{1,%s}"}, "#it{y}", "v_{1}"},
 //
   //{{"v1_proton_y_psd(1|2|3)_proton_MH_(X|Y)_0", "","v1_mc_proton_y_psi_(X|Y)_0"}, {"v^{p,PSD%s}_{1,%s}", "","v^{p,MC}_{1,%s}"}, "#it{y}", "v_{1}"},
@@ -189,7 +167,6 @@ TFile *fIn, *fOut;
 
 void drawCorr(vector<tuple <vector<string>, vector<string>, string, string>> corrTuples, const string inDirName, const string outDirName) 
 {
-  
   TDirectory *inDir{nullptr};
   if (!(inDir = dynamic_cast<TDirectory *>(fIn->Get(inDirName.c_str())))) {
     printf ("No directory \"%s\"", inDirName);
@@ -227,11 +204,12 @@ void drawCorr(vector<tuple <vector<string>, vector<string>, string, string>> cor
         vector <string> subs(5);
         copy (match_result.begin()+1, match_result.end(), subs.begin());
 
-        title = Form(corrTitle.c_str(), subs.at(0).c_str(),
-                                           subs.at(1).c_str(),
-                                           subs.at(2).c_str(),
-                                           subs.at(3).c_str(),
-                                           subs.at(4).c_str());
+        title = Form(corrTitle.c_str(), 
+                    subs.at(0).c_str(),
+                    subs.at(1).c_str(),
+                    subs.at(2).c_str(),
+                    subs.at(3).c_str(),
+                    subs.at(4).c_str());
         //cout << title << endl;
         g->SetName(name.c_str());
         TString oldTitle = g->GetTitle();
@@ -271,7 +249,8 @@ void drawQQ()
                                       {"pion_neg", "STS,#pi-"},
                                       {"proton", "STS,p_{MCpid}"},
                                       {"pion_pos", "STS,#pi^{+}_{MCpid}"},
-                                      {"pion_neg", "STS,#pi^{-}_{MCpid}"},};
+                                      {"pion_neg", "STS,#pi^{-}_{MCpid}"},
+                                      };
   
   for (auto det1:detectors)
   {
@@ -291,7 +270,7 @@ void drawQQ()
 void drawV1_1()
 {
   vector<tuple <vector<string>, vector<string>, string, string>> v1_names;
-  vector<string> parts = {"proton","pion_pos","pion_neg"/*,"kaon_pos","kaon_neg"*/};
+  vector<string> parts = {"proton","pion_pos","pion_neg","kaon_pos","kaon_neg"};
   vector<string> partNames = {"p","#pi^{+}","#pi^{-}","K^{+}","K^{-}"};
   vector<string> refs = {"proton","pion_pos","pion_neg"};
   vector<string> pids = {"","mcPid_", "mc_"};
@@ -343,11 +322,11 @@ void drawV1_1()
   }
 }
 
-void drawV1_2()
+void drawV1_2(bool dv1dy = false)
 {
-  vector<tuple <vector<string>, vector<string>, string, string>> v1_names;
-  vector<string> parts = {"proton_b","proton_f", "pion_pos","pion_neg"/*,"kaon_pos","kaon_neg"*/};
-  vector<string> partNames = {"p","#pi^{+}","#pi^{-}","K^{+}","K^{-}"};
+  vector<tuple <vector<string>, vector<string>, string, string>> v1_names, v1_slope_names, v1_offset_names;
+  vector<string> parts = {"proton_b", "proton_f"/*, "proton"*/, "pion_pos","pion_neg","kaon_pos","kaon_neg"};
+  vector<string> partNames = {"p","p"/*,"p"*/,"#pi^{+}","#pi^{-}","K^{+}","K^{-}"};
   vector<string> refs = {/*"proton","pion_neg",*/"pion_pos_res"};
   vector<string> pids = {".?","mcPid_", "mc_"};
   vector<string> pidNames = {"","_{MCpid}", "_{MC}"};
@@ -364,66 +343,111 @@ void drawV1_2()
       string partName=partNames.at(p);
       for (int cent=0;cent<5;cent++)
       {
-        for (auto psd:{"psd1","psd2","psd3"})
+        for (auto psd:{"psd1","psd2","psd3","psd1psd2psd3"})
         {
           for (uint pi=0;pi<pids.size();pi++)
           {
             string pid=pids.at(pi);
             string pidName=pidNames.at(pi);
-            for (auto &res:{"3S"})
+            //for (auto &res:{"3S"})
+            //{
+            //  vector <string> corrNames =
+            //  {
+            //        "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|3S_|MC_)(X)_"+Form("%i",cent), 
+            //        "v1_mc_"+part+"_"+axis+"_(psi)_(X)_"+Form("%i",cent),
+            //        "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|3S_|MC_)(Y)_"+Form("%i",cent), 
+            //        "v1_mc_"+part+"_"+axis+"_(psi)_(Y)_"+Form("%i",cent),
+            //  };
+            //  vector <string> corrTitles =
+            //  {
+            //        "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}", 
+            //        "v^{"+partName+",MC}_{1}{%s,%s}",
+            //        "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}", 
+            //        "v^{"+partName+",MC}_{1}{%s,%s}",
+            //  };
+            //  v1_names.push_back ({corrNames, corrTitles, axisName, "v_{1}"});
+            //  if(dv1dy && axis=="y" && cent==0)
+            //  {
+            //    v1_slope_names.push_back({corrNames, corrTitles, "Centrality (%)", "dv_{1}/d#it{y}"});
+            //    v1_offset_names.push_back({corrNames, corrTitles, "Centrality (%)", "dv_{1}/d#it{y}"});
+            //  }
+            //}        
+            for (auto &res:{"4S"/*,"MH"*/})
             {
-              v1_names.push_back
-              (
-                {
-                  {
-                    "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|3S_|MC_)(X)_"+Form("%i",cent), 
-                    "v1_mc_"+part+"_"+axis+"_(psi)_(X)_"+Form("%i",cent),
-                    "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|3S_|MC_)(Y)_"+Form("%i",cent), 
-                    "v1_mc_"+part+"_"+axis+"_(psi)_(Y)_"+Form("%i",cent),
-                  }, 
-                  {
-                    "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}", 
-                    "v^{"+partName+",MC}_{1}{%s,%s}",
-                    "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}", 
-                    "v^{"+partName+",MC}_{1}{%s,%s}",
-                  },
-                  axisName, "v_{1}"
-                }
-              );
-            }        
-          }
-          for (auto &res:{"4S","MH"})
-          {
-            for (uint r=0;r<refs.size();r++)
-            {
-              string ref=refs.at(r);
-              string refName=partNames.at(r);
-              for (uint pi=0;pi<pids.size();pi++)
+              for (uint r=0;r<refs.size();r++)
               {
-                string pid=pids.at(pi);
-                string pidName=pidNames.at(pi);
-    //{{"v1_(.?|mc_)proton_y_(psd1|psi)_(.?|proton_MH_|MC_)X_0", "v1_(.?|mc_)proton_y_(psd1|psi)_(.?|proton_MH_|MC_)Y_0",""}, {"v^{p^{%s}}_{1,x}(%s,%s)", "v^{p^{%s},%s}_{1,y}",""}, "#it{y}", "v_{1}"},
-                v1_names.push_back({
-                                      {
-                                        "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|"+ref+"_"+res+"_|MC_)(X)_"+Form("%i",cent),
-                                        "v1_mc_"+part+"_"+axis+"_(psi)_(X)_"+Form("%i",cent), 
-                                        "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|"+ref+"_"+res+"_|MC_)(Y)_"+Form("%i",cent),
-                                        "v1_mc_"+part+"_"+axis+"_(psi)_(Y)_"+Form("%i",cent), 
-                                      }, 
-                                      {
-                                        "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}",
-                                        "v^{"+partName+",MC}_{1}{%s,%s}", 
-                                        "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}",
-                                        "v^{"+partName+",MC}_{1}{%s,%s}", 
-                                      }, 
-                                      axisName, "v_{1}"
-                                    });
+                string ref=refs.at(r);
+                string refName=partNames.at(r);
+      //{{"v1_(.?|mc_)proton_y_(psd1|psi)_(.?|proton_MH_|MC_)X_0", "v1_(.?|mc_)proton_y_(psd1|psi)_(.?|proton_MH_|MC_)Y_0",""}, {"v^{p^{%s}}_{1,x}(%s,%s)", "v^{p^{%s},%s}_{1,y}",""}, "#it{y}", "v_{1}"},
+                vector <string> corrNames = 
+                {
+                  "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|"+ref+"_"+res+"_|MC_)(X)_"+Form("%i",cent),
+                  "v1_mc_"+part+"_"+axis+"_(psi)_(X)_"+Form("%i",cent), 
+                  "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|"+ref+"_"+res+"_|MC_)(Y)_"+Form("%i",cent),
+                  "v1_mc_"+part+"_"+axis+"_(psi)_(Y)_"+Form("%i",cent), 
+                };
+                vector <string> corrTitles = 
+                {
+                  "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}",
+                  "v^{"+partName+",MC}_{1}{%s,%s}", 
+                  "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}",
+                  "v^{"+partName+",MC}_{1}{%s,%s}", 
+                };
+                v1_names.push_back({corrNames, corrTitles, axisName, "v_{1}"});
+                if(dv1dy && axis=="y" && cent==0)
+                {
+                  v1_slope_names.push_back({corrNames, corrTitles, "Centrality (%)", "dv_{1} / d#it{y}"});
+                  v1_offset_names.push_back({corrNames, corrTitles, "Centrality (%)", "dv_{1} / d#it{y} offset"});
+                }
+                
+                //combined components
+                corrNames = 
+                {
+                  "v1_"+pid+part+"_"+axis+"_("+psd+"|psi)_(.?|"+ref+"_"+res+"_|MC_)(XY)_"+Form("%i",cent),
+                  "v1_mc_"+part+"_"+axis+"_(psi)_(XY)_"+Form("%i",cent),
+                };
+                corrTitles = 
+                {
+                  "v^{"+partName+"^{"+pidName+"}}_{1}{%s,%s,%s}",
+                  "v^{"+partName+",MC}_{1}{%s,%s}",
+                };
+                v1_names.push_back({corrNames, corrTitles, axisName, "v_{1}"});
+                if(dv1dy && axis=="y" && cent==0)
+                {
+                  v1_slope_names.push_back({corrNames, corrTitles, "Centrality (%)", "dv_{1} / d#it{y}"});
+                  v1_offset_names.push_back({corrNames, corrTitles, "Centrality (%)", "dv_{1} / d#it{y} offset"});
+                }
               }
             }
           }
         }
       }
       drawCorr(v1_names, "v1", Form("v1_%s_%s", part.c_str(), axis.c_str()));
+      if (dv1dy && axis=="y")
+      {        
+        for (auto &name:v1_slope_names)
+        {
+          auto &corrNames =get<0>(name);
+          for (auto &corrName:corrNames)
+          {
+            corrName.insert(0,"slope_");
+            corrName.erase(corrName.rfind("_"),3);
+          }
+        }
+        drawCorr(v1_slope_names, "dv1dy", Form("v1_slope_%s_%s", part.c_str(), axis.c_str()));
+        v1_slope_names.clear();
+        for (auto &name:v1_offset_names)
+        {
+          auto &corrNames =get<0>(name);
+          for (auto &corrName:corrNames)
+          {
+            corrName.insert(0,"offset_");
+            corrName.erase(corrName.rfind("_"),3);
+          }
+        }
+        drawCorr(v1_offset_names, "dv1dy", Form("v1_offset_%s_%s", part.c_str(), axis.c_str()));
+        v1_offset_names.clear();
+      }
       v1_names.clear();
     }
   }
@@ -476,11 +500,11 @@ void draw(const string &inFile = "graphs.root", const string &outFile = "qq.root
   //graphShift = 0.;
   //drawQQ();
   drawCorr(QQnames, "raw", "QQ");
-  //drawCorr(Q2QQnames, "raw", "Q2QQ");
+//  drawCorr(Q2QQnames, "raw", "Q2QQ");
   drawCorr(resNames, "resolution", "res");
   //drawCorr(v1names, "v1", "v1");
   //drawV1_1();
-  drawV1_2();
+//  drawV1_2(true);
   //drawCorr(u2QQnames, "uQ", "u2QQ");
   //drawV2();
 }

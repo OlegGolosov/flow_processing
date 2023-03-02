@@ -4,7 +4,7 @@
 path_to_corr=$1
 shift 1
 
-output_dir=$(dirname $path_to_input)
+output_dir=$(dirname $path_to_corr)
 path_to_profiles="$output_dir/profiles.root"
 path_to_graphs="$output_dir/graphs.root"
 path_to_pics="$output_dir/pics.root"
