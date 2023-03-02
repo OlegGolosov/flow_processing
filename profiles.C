@@ -28,27 +28,28 @@ int profiles(
       Folder("v1").
       Rebin(centralityAxis).
       CorrelatedErrors().
-      Unfold());
+      Unfold()
+  );
   
-  // v1 with the original binning for dV1/dy vs Centrality plots
-  rm.ForMatchingExec("v1_.*", ProfileExporter(outputfile).
-      Folder("v1_origbin").
-      CorrelatedErrors().
-      Unfold());
-  /*
+  // dV1/dy vs Centrality
+//  rm.ForMatchingExec("v1_deutron_y.*", ProfileExporter(outputfile).
+//      Folder("dv1dy").
+//      CorrelatedErrors().
+//      dv1dy(-0.4, 0.4, "Centrality"));
+  
   // Combined v1
-  rm.ForMatchingExec("v1_.*(CC|CR|CA)", ProfileExporter(outputfile).
-      Folder("v1_combined").
-      Rebin(centralityAxis).
-      CorrelatedErrors().
-      Unfold());
-  // Combined v1
-  // v1 with the original binning for dV1/dy vs Centrality plots
-  rm.ForMatchingExec("v1_.*(CC|CR|CA)", ProfileExporter(outputfile).
-      Folder("v1_combined_origbin").
-      CorrelatedErrors().
-      Unfold());
-  */
+  //rm.ForMatchingExec("v1_.*(CC|CR|CA)", ProfileExporter(outputfile).
+  //    Folder("v1_combined").
+  //    Rebin(centralityAxis).
+  //    CorrelatedErrors().
+  //    Unfold());
+  //// Combined v1
+  //// v1 with the original binning for dV1/dy vs Centrality plots
+  //rm.ForMatchingExec("v1_.*(CC|CR|CA)", ProfileExporter(outputfile).
+  //    Folder("v1_combined_origbin").
+  //    CorrelatedErrors().
+  //    Unfold());
+  
   //rm.ForMatchingExec("v1_.*(CC|CR|CA)", ProfileExporter(outputfile).
   //    Folder("v1_combined_15_35").
   //    Rebin({"Centrality", {15, 35}}).

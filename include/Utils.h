@@ -44,23 +44,42 @@ TPaveText *MakePaveText(const std::vector<std::string> &lines, std::vector<Doubl
   return pave;
 }
 
-Result RebinRapidity(const Result &r, const std::vector<float> &binEdges) {
-  std::string axRapidityName;
-  // find rapidity axis
+Result Rebin(const Result &r, std::string axisName, const std::vector<float> &binEdges) {
+  std::string newAxisName;
+  // find axis
   for (const Qn::Axis &ax : r.GetAxes()) {
-    if (ax.Name().find("Rapidity") < ax.Name().size()) {
-      axRapidityName = ax.Name();
+    if (ax.Name().find(axisName) < ax.Name().size()) {
+      newAxisName = ax.Name();
       break;
     }
   }
 
-  if (axRapidityName.empty()) {
-    throw std::runtime_error("No rapidity axis found");
+  if (newAxisName.empty()) {
+    throw std::runtime_error("Rebin axis not found");
+  }
+  Qn::Axis newAxis(newAxisName, binEdges);
+
+  return r.Rebin(newAxis);
+}
+
+Result Projection(const Result &r, vector<string> axesNames) {
+  vector<string> newAxesNames;
+  // find axis
+  for (const Qn::Axis &ax : r.GetAxes()) 
+  {
+    for (auto &axisName:axesNames)
+    {
+      if (ax.Name().find(axisName) < ax.Name().size()) {
+        newAxesNames.push_back(ax.Name());
+      }
+    }
   }
 
-  Qn::Axis newRapidityAxis(axRapidityName, binEdges);
+  if (newAxesNames.size() < axesNames.size()) {
+    throw std::runtime_error("Not all projection axes found");
+  }
 
-  return r.Rebin(newRapidityAxis);
+  return r.Projection(newAxesNames);
 }
 
 Result SetReference(const Result &r) {
@@ -197,6 +216,17 @@ struct ProfileExporter {
     return *this;
   }
 
+  bool isdv1dy{false};
+  float dv1dyFitMin{-1.}, dv1dyFitMax{1.};
+  string eventAxisName{"Centrality"};
+  ProfileExporter &dv1dy(float _dv1dyFitMin = -0.4, float _dv1dyFitMax = 0.4, string _eventAxisName = "Centrality") {
+    isdv1dy = true;
+    eventAxisName = _eventAxisName;
+    dv1dyFitMin = _dv1dyFitMin;
+    dv1dyFitMax = _dv1dyFitMax;
+    return *this;
+  }
+
   std::string prefix{""};
   std::string suffix{""};
   std::string mgTitlePattern{"{}-{}%"};
@@ -247,16 +277,23 @@ struct ProfileExporter {
     }
 
     if (result.GetAxes().size() == 2) {
-      std::string axisname{"Centrality"};
       auto profileMultigraph = new TMultiGraph();
       Qn::Axis axis;
-      try { axis = result.GetAxis(axisname); } // TODO
+      try { axis = result.GetAxis(eventAxisName); } // TODO
       catch (std::exception &) {
         // TODO return?
         throw std::logic_error("axis not found");
       }
+      Qn::Axis centralityAxis = result.GetAxis(eventAxisName);
+      TGraphAsymmErrors slopeGraph;
+      //slopeGraph.SetTitle(centralityAxis.Name().c_str());
+      TGraphAsymmErrors offsetGraph;
+      //offsetGraph.SetTitle(centralityAxis.Name().c_str());
+      TF1 fitFun("fit", "pol1");
+      
       for (unsigned int ibin = 0; ibin < axis.size(); ++ibin) {
-        auto subresult = result.Select({axisname, {axis.GetLowerBinEdge(ibin), axis.GetUpperBinEdge(ibin)}});
+        
+        auto subresult = result.Select({eventAxisName, {axis.GetLowerBinEdge(ibin), axis.GetUpperBinEdge(ibin)}});
         // shift subgraph points to the center of bins
         auto subgraph = Qn::DataContainerHelper::ToTGraphShifted(subresult,
                                                                  1,
@@ -264,6 +301,23 @@ struct ProfileExporter {
                                                                  Qn::DataContainerHelper::Errors::Yonly);
         subgraph->SetTitle(fmt::format(mgTitlePattern, axis.GetLowerBinEdge(ibin), axis.GetUpperBinEdge(ibin)).c_str());
         subgraph->SetMarkerStyle(kFullCircle);
+        if (isdv1dy)
+        {
+          subgraph->Fit(&fitFun, "Q", "", dv1dyFitMin, dv1dyFitMax);
+          double centralityLo = centralityAxis.GetLowerBinEdge(ibin);
+          double centralityHi = centralityAxis.GetUpperBinEdge(ibin);
+          double centrality = 0.5 * (centralityLo + centralityHi);
+
+          double offset = fitFun.GetParameter(0);
+          double offsetError = fitFun.GetParError(0);
+          offsetGraph.SetPoint(ibin, centrality, offset);
+          offsetGraph.SetPointError(ibin, 0., 0., offsetError, offsetError);
+
+          double slope = fitFun.GetParameter(1);
+          double slopeError = fitFun.GetParError(1);
+          slopeGraph.SetPoint(ibin, centrality, slope);
+          slopeGraph.SetPointError(ibin, 0., 0., slopeError, slopeError);
+        }
         profileMultigraph->Add(subgraph);
 
         if (isUnfold) {
@@ -273,6 +327,14 @@ struct ProfileExporter {
         }
       }
 
+      if (isdv1dy)
+      {
+        exportDir->WriteObject(&offsetGraph, ("offset_"+profileExportName).c_str());
+        Info(__func__, "'%s' is exported as TGraph '%s'", resourceName.c_str(), ("offset_"+profileExportName).c_str());
+        exportDir->WriteObject(&slopeGraph, ("slope_"+profileExportName).c_str());
+        Info(__func__, "'%s' is exported as TGraph '%s'", resourceName.c_str(), ("slope_"+profileExportName).c_str());
+      }
+        
       exportDir->WriteObject(profileMultigraph, profileExportName.c_str());
       Info(__func__, "'%s' is exported as TMultiGraph '%s'", resourceName.c_str(), profileExportName.c_str());
     } else if (result.GetAxes().size() == 1) {
